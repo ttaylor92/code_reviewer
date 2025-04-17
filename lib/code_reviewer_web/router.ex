@@ -20,6 +20,12 @@ defmodule CodeReviewerWeb.Router do
     get "/", PageController, :home
   end
 
+  scope "/api", CodeReviewerWeb do
+    pipe_through :api
+
+    post "/webhook", WebhookController, :handle
+  end
+
   # Other scopes may use custom stacks.
   # scope "/api", CodeReviewerWeb do
   #   pipe_through :api

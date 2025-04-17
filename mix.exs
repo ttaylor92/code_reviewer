@@ -56,7 +56,8 @@ defmodule CodeReviewer.MixProject do
       {:dns_cluster, "~> 0.1.1"},
       {:bandit, "~> 1.5"},
       {:tesla, "~> 1.8"},
-      {:hackney, "~> 1.18"}
+      {:hackney, "~> 1.9"},
+      {:dotenv_parser, "~> 2.0", only: [:dev, :test]}
     ]
   end
 
