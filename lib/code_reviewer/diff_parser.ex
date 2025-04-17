@@ -12,15 +12,20 @@ defmodule CodeReviewer.DiffParser do
   end
 
   defp parse_file_old(lines) do
-    lines
-    |> Enum.find(&String.starts_with?(&1, "--- a/"))
-    |> String.replace_prefix("--- a/", "")
+    replace_string_in_lines(lines, "--- a/")
   end
 
   defp parse_file_new(lines) do
+    replace_string_in_lines(lines, "+++ b/")
+  end
+
+  defp replace_string_in_lines(lines, string) do
     lines
-    |> Enum.find(&String.starts_with?(&1, "+++ b/"))
-    |> String.replace_prefix("+++ b/", "")
+    |> Enum.find(&String.starts_with?(&1, string))
+    |> then(fn
+      nil -> ""
+      v -> String.replace_prefix(v, string, "")
+    end)
   end
 
   defp parse_index(lines) do

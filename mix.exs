@@ -60,7 +60,9 @@ defmodule CodeReviewer.MixProject do
       {:dotenv_parser, "~> 2.0", only: [:dev, :test]},
       {:ecto_sql, "~> 3.0"},
       {:postgrex, ">= 0.0.0"},
-      {:ecto_shorts, "~> 2.4.0"}
+      {:ecto_shorts, "~> 2.4.0"},
+      {:excoveralls, "~> 0.18.5", only: :test, runtime: false},
+      {:credo, "~> 1.6", only: [:dev, :test], runtime: false}
     ]
   end
 

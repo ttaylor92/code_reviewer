@@ -63,6 +63,7 @@ defmodule CodeReviewer.GithubActions do
   end
 
   defp create_annotations(repo, pr_number, analysis, owner, sha, parsed_body) do
+    IO.puts("Processing Annotations")
     with {:ok, %{github_api_token: github_api_token}} <-
            CodeReviewer.SchemasPg.CredentialManagment.find() do
       # Parse the AI's analysis to extract violations
@@ -93,6 +94,7 @@ defmodule CodeReviewer.GithubActions do
                  start_side: "RIGHT"
                  #  subject_type: "file",
                }) do
+          IO.puts("Annotation has been added")
           :ok
         end
       end
