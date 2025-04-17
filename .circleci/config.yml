@@ -9,7 +9,7 @@ executors:
       - image: cimg/postgres:15.3
         environment:
           POSTGRES_USER: postgres
-          POSTGRES_DB: my_app_test
+          POSTGRES_DB: postgres
           POSTGRES_PASSWORD: postgres
     working_directory: ~/project
 
