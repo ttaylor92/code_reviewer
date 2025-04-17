@@ -7,6 +7,19 @@ config :code_reviewer, CodeReviewerWeb.Endpoint,
   secret_key_base: "8xKq8cM5ESMAfCfnQ39SjsLLbhKE0dYwGOd9oXwVaCXYulpXfEjPzQV0jTc7Bo7g",
   server: false
 
+config :code_reviewer, CodeReviewer.Repo,
+  database: "postgres",
+  username: "postgres",
+  password: "postgres",
+  show_sensitive_data_on_connection_error: true,
+  pool_size: 10
+
+config :code_reviewer, ecto_repos: [CodeReviewer.Repo]
+
+config :ecto_shorts,
+  repo: CodeReviewer.Repo,
+  error_module: EctoShorts.Actions.Error
+
 # In test we don't send emails
 config :code_reviewer, CodeReviewer.Mailer, adapter: Swoosh.Adapters.Test
 

@@ -1,0 +1,59 @@
+version: 2.1
+
+executors:
+  elixir-executor:
+    docker:
+      - image: cimg/elixir:1.15.5  # Choose your Elixir version
+        environment:
+          MIX_ENV: test
+      - image: cimg/postgres:15.3  # Choose your Postgres version
+        environment:
+          POSTGRES_USER: postgres
+          POSTGRES_DB: my_app_test
+          POSTGRES_PASSWORD: postgres
+    working_directory: ~/project
+
+jobs:
+  test:
+    executor: elixir-executor
+    steps:
+      - checkout
+
+      - run:
+          name: Install Hex & Rebar
+          command: |
+            mix local.hex --force
+            mix local.rebar --force
+
+      - restore_cache:
+          keys:
+            - v1-mix-deps-{{ checksum "mix.lock" }}
+
+      - run:
+          name: Install Dependencies
+          command: mix deps.get
+
+      - save_cache:
+          key: v1-mix-deps-{{ checksum "mix.lock" }}
+          paths:
+            - deps
+            - _build
+
+      - run:
+          name: Compile Project
+          command: mix compile
+
+      - run:
+          name: Wait for DB to be ready
+          command: |
+            dockerize -wait tcp://localhost:5432 -timeout 60s
+
+      - run:
+          name: Create and Migrate Database
+          command: |
+            mix ecto.create
+            mix ecto.migrate
+
+      - run:
+          name: Run Tests
+          command: mix test
