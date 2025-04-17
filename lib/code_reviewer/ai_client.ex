@@ -26,10 +26,10 @@ defmodule CodeReviewer.AIClient do
 
     user_prompt = """
     Please review this code:
-    #{code}
+    #{code[:body]}
     """
-    IO.inspect("HIT")
-    case Tesla.post(@client, "/chat/completions", %{
+
+    with {:ok, %_{status: 201, body: body}} <- post(@client, "/chat/completions", %{
       model: "mistralai/Mistral-7B-Instruct-v0.2",
       messages: [
         %{role: "system", content: system_prompt},
@@ -38,11 +38,8 @@ defmodule CodeReviewer.AIClient do
       temperature: 0.7,
       max_tokens: 1000
     }) do
-      {:ok, %{status: 200, body: body}} ->
-        IO.inspect(body)
-        {:ok, body["choices"][0]["message"]["content"]}
-      {:error, error} ->
-        {:error, error}
+      content = List.first(body["choices"])["message"]["content"]
+      {:ok, content}
     end
   end
 

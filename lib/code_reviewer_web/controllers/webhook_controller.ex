@@ -33,8 +33,7 @@ defmodule CodeReviewerWeb.WebhookController do
         ev when ev in ["opened", "reopened", "ready_for_review"] ->
           handle_pull_request(conn, params, action)
 
-        ev ->
-          IO.inspect(ev)
+        _ ->
           conn
           |> put_status(:ok)
           |> json(%{message: "Recieved but event type not supported"})
