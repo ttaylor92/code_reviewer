@@ -6,15 +6,18 @@ defmodule CodeReviewer.GithubActions do
   plug Tesla.Middleware.JSON
 
   defp get_client(username) do
-    Tesla.client([
-      {Tesla.Middleware.Headers,
-       [
-         {"Authorization", "Bearer #{System.get_env("GITHUB_TOKEN")}"},
-         {"X-GitHub-Api-Version", "2022-11-28"},
-         {"Accept", "application/vnd.github.v3.diff"},
-         {"User-Agent", username}
-       ]}
-    ])
+    with {:ok, %{github_api_token: github_api_token}} <-
+           CodeReviewer.SchemasPg.CredentialManagment.find() do
+      Tesla.client([
+        {Tesla.Middleware.Headers,
+         [
+           {"Authorization", "Bearer #{github_api_token || System.get_env("GITHUB_TOKEN")}"},
+           {"X-GitHub-Api-Version", "2022-11-28"},
+           {"Accept", "application/vnd.github.v3.diff"},
+           {"User-Agent", username}
+         ]}
+      ])
+    end
   end
 
   def process_pull_request(payload) do
@@ -63,40 +66,43 @@ defmodule CodeReviewer.GithubActions do
   end
 
   defp create_annotations(repo, pr_number, analysis, owner, sha, parsed_body) do
-    # Parse the AI's analysis to extract violations
-    violations = parse_analysis(analysis)
+    with {:ok, %{github_api_token: github_api_token}} <-
+           CodeReviewer.SchemasPg.CredentialManagment.find() do
+      # Parse the AI's analysis to extract violations
+      violations = parse_analysis(analysis)
 
-    client =
-      Tesla.client([
-        {Tesla.Middleware.Headers,
-         [
-           {"Authorization", "Bearer #{System.get_env("GITHUB_TOKEN")}"},
-           #  {"X-GitHub-Api-Version", "2022-11-28"},
-           {"Accept", "application/vnd.github-commitcomment.raw+json"},
-           {"User-Agent", owner}
-         ]}
-      ])
+      client =
+        Tesla.client([
+          {Tesla.Middleware.Headers,
+           [
+             {"Authorization", "Bearer #{github_api_token || System.get_env("GITHUB_TOKEN")}"},
+             #  {"X-GitHub-Api-Version", "2022-11-28"},
+             {"Accept", "application/vnd.github-commitcomment.raw+json"},
+             {"User-Agent", owner}
+           ]}
+        ])
 
-    for v <- violations do
-      # IO.inspect([repo, pr_number, analysis, owner, sha])
-      # Create a check run
-      case post(client, "repos/#{owner}/#{repo}/pulls/#{pr_number}/comments", %{
-             body: v.message,
-             commit_id: sha,
-             path: parsed_body.file_new,
-             start_line: v.start_line,
-             line: v.start_line + 1,
-             side: "RIGHT",
-             start_side: "RIGHT"
-             #  subject_type: "file",
-           }) do
-        {:ok, %{status: 201} = res} ->
-          IO.inspect(res)
-          :ok
+      for v <- violations do
+        # IO.inspect([repo, pr_number, analysis, owner, sha])
+        # Create a check run
+        case post(client, "repos/#{owner}/#{repo}/pulls/#{pr_number}/comments", %{
+               body: v.message,
+               commit_id: sha,
+               path: parsed_body.file_new,
+               start_line: v.start_line,
+               line: v.start_line + 1,
+               side: "RIGHT",
+               start_side: "RIGHT"
+               #  subject_type: "file",
+             }) do
+          {:ok, %{status: 201} = res} ->
+            IO.inspect(res)
+            :ok
 
-        {:error, error} ->
-          # IO.inspect(error)
-          {:error, error}
+          {:error, error} ->
+            # IO.inspect(error)
+            {:error, error}
+        end
       end
     end
   end

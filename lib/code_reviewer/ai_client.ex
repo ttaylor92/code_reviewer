@@ -4,13 +4,6 @@ defmodule CodeReviewer.AIClient do
   plug Tesla.Middleware.BaseUrl, "https://api.aimlapi.com/v1"
   plug Tesla.Middleware.JSON
 
-  @client Tesla.client([
-    {Tesla.Middleware.Headers,
-     [
-       {"Authorization", "Bearer #{System.get_env("AIML_API_KEY")}"},
-     ]}
-  ])
-
   def analyze_code(code, rules) do
     system_prompt = """
     You are an expert code reviewer. Analyze the following code against these rules and identify any violations.
@@ -29,17 +22,29 @@ defmodule CodeReviewer.AIClient do
     #{code[:body]}
     """
 
-    with {:ok, %_{status: 201, body: body}} <- post(@client, "/chat/completions", %{
-      model: "mistralai/Mistral-7B-Instruct-v0.2",
-      messages: [
-        %{role: "system", content: system_prompt},
-        %{role: "user", content: user_prompt}
-      ],
-      temperature: 0.7,
-      max_tokens: 1000
-    }) do
-      content = List.first(body["choices"])["message"]["content"]
-      {:ok, content}
+    with {:ok, %{ai_api_token: ai_api_token}} <-
+           CodeReviewer.SchemasPg.CredentialManagment.find() do
+      client =
+        Tesla.client([
+          {Tesla.Middleware.Headers,
+           [
+             {"Authorization", "Bearer #{ai_api_token || System.get_env("AIML_API_KEY")}"}
+           ]}
+        ])
+
+      with {:ok, %_{status: 201, body: body}} <-
+             post(client, "/chat/completions", %{
+               model: "mistralai/Mistral-7B-Instruct-v0.2",
+               messages: [
+                 %{role: "system", content: system_prompt},
+                 %{role: "user", content: user_prompt}
+               ],
+               temperature: 0.7,
+               max_tokens: 1000
+             }) do
+        content = List.first(body["choices"])["message"]["content"]
+        {:ok, content}
+      end
     end
   end
 
@@ -59,19 +64,29 @@ defmodule CodeReviewer.AIClient do
     #{context}
     """
 
-    case Tesla.post(@client, "/chat/completions", %{
-      model: "mistralai/Mistral-7B-Instruct-v0.2",
-      messages: [
-        %{role: "system", content: system_prompt},
-        %{role: "user", content: user_prompt}
-      ],
-      temperature: 0.7,
-      max_tokens: 1000
-    }) do
-      {:ok, %{status: 200, body: body}} ->
-        {:ok, body["choices"][0]["message"]["content"]}
-      {:error, error} ->
-        {:error, error}
+    with {:ok, %{ai_api_token: ai_api_token}} <-
+           CodeReviewer.SchemasPg.CredentialManagment.find() do
+      client =
+        Tesla.client([
+          {Tesla.Middleware.Headers,
+           [
+             {"Authorization", "Bearer #{ai_api_token || System.get_env("AIML_API_KEY")}"}
+           ]}
+        ])
+
+      with {:ok, %{status: 200, body: body}} <-
+             Tesla.post(client, "/chat/completions", %{
+               model: "mistralai/Mistral-7B-Instruct-v0.2",
+               messages: [
+                 %{role: "system", content: system_prompt},
+                 %{role: "user", content: user_prompt}
+               ],
+               temperature: 0.7,
+               max_tokens: 1000
+             }) do
+        content = List.first(body["choices"])["message"]["content"]
+        {:ok, content}
+      end
     end
   end
 end

@@ -24,6 +24,7 @@ defmodule CodeReviewerWeb.Router do
     pipe_through :api
 
     post "/webhook", WebhookController, :handle
+    post "/credentials", CredentialController, :create
   end
 
   # Other scopes may use custom stacks.

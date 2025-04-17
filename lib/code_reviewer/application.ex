@@ -16,7 +16,8 @@ defmodule CodeReviewer.Application do
       # Start a worker by calling: CodeReviewer.Worker.start_link(arg)
       # {CodeReviewer.Worker, arg},
       # Start to serve requests, typically the last entry
-      CodeReviewerWeb.Endpoint
+      CodeReviewerWeb.Endpoint,
+      CodeReviewer.Repo
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

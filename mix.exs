@@ -57,7 +57,10 @@ defmodule CodeReviewer.MixProject do
       {:bandit, "~> 1.5"},
       {:tesla, "~> 1.8"},
       {:hackney, "~> 1.9"},
-      {:dotenv_parser, "~> 2.0", only: [:dev, :test]}
+      {:dotenv_parser, "~> 2.0", only: [:dev, :test]},
+      {:ecto_sql, "~> 3.0"},
+      {:postgrex, ">= 0.0.0"},
+      {:ecto_shorts, "~> 2.4.0"}
     ]
   end
 

@@ -7,6 +7,23 @@
 # General application configuration
 import Config
 
+config :code_reviewer, CodeReviewer.Repo,
+  database: "postgres",
+  username: "postgres.qwtfvjncduvqfxbjtvyu",
+  password: "&gx&1hQ6xJsP^^8t9WZ^",
+  hostname: "aws-0-us-east-1.pooler.supabase.com",
+  port: 6543,
+  show_sensitive_data_on_connection_error: true,
+  pool_size: 10,
+  pool_mode: :transaction
+  # ssl: true
+
+config :code_reviewer, ecto_repos: [CodeReviewer.Repo]
+
+config :ecto_shorts,
+  repo: CodeReviewer.Repo,
+  error_module: EctoShorts.Actions.Error
+
 config :code_reviewer,
   generators: [timestamp_type: :utc_datetime]
 
