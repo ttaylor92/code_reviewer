@@ -39,10 +39,7 @@ defmodule CodeReviewer.GithubActions do
     with {:ok, %{status: 200, body: body}} <-
            get(get_client(owner), "/repos/#{owner}/#{repo}/pulls/#{pr_number}") do
       # Format the diff for the AI
-      # diff = parse_git_diff(body)
       parsed_body = CodeReviewer.DiffParser.parse(body)
-      # IO.inspect(body, label: "BODY!!")
-      # IO.inspect(diff, label: "Diff!!")
 
       {:ok, %{body: body, parsed_body: parsed_body}}
     end
@@ -83,25 +80,20 @@ defmodule CodeReviewer.GithubActions do
         ])
 
       for v <- violations do
-        # IO.inspect([repo, pr_number, analysis, owner, sha])
         # Create a check run
-        case post(client, "repos/#{owner}/#{repo}/pulls/#{pr_number}/comments", %{
-               body: v.message,
-               commit_id: sha,
-               path: parsed_body.file_new,
-               start_line: v.start_line,
-               line: v.start_line + 1,
-               side: "RIGHT",
-               start_side: "RIGHT"
-               #  subject_type: "file",
-             }) do
-          {:ok, %{status: 201} = res} ->
-            IO.inspect(res)
-            :ok
 
-          {:error, error} ->
-            # IO.inspect(error)
-            {:error, error}
+        with {:ok, %{status: 201}} <-
+               post(client, "repos/#{owner}/#{repo}/pulls/#{pr_number}/comments", %{
+                 body: v.message,
+                 commit_id: sha,
+                 path: parsed_body.file_new,
+                 start_line: v.start_line,
+                 line: v.start_line + 1,
+                 side: "RIGHT",
+                 start_side: "RIGHT"
+                 #  subject_type: "file",
+               }) do
+          :ok
         end
       end
     end
