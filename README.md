@@ -1,5 +1,8 @@
 # CodeReviewer
 
+[![CircleCI](https://dl.circleci.com/status-badge/img/gh/ttaylor92/code_reviewer/tree/master.svg?style=svg&circle-token=CCIPRJ_EW8pczxe9JWQVnikpLwyWC_7024332fff056faf3e1dfc74dcef39a85189fe3b)](https://dl.circleci.com/status-badge/redirect/gh/ttaylor92/code_reviewer/tree/master)
+[![codecov](https://codecov.io/gh/ttaylor92/code_reviewer/graph/badge.svg?token=PTLD0JOI75)](https://codecov.io/gh/ttaylor92/code_reviewer)
+
 To start your Phoenix server:
 
   * Run `mix setup` to install and setup dependencies
