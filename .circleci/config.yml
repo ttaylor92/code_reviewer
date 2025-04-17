@@ -52,7 +52,7 @@ jobs:
           name: Check Postgres Connection
           command: |
             pg_isready -h localhost -p 5432 -U postgres
-            psql -h localhost -U postgres -d my_app_test -c '\l'
+            psql -h localhost -U postgres -d code_review_test -c '\l'
 
       - run:
           name: Create and Migrate Database
