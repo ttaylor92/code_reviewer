@@ -9,7 +9,7 @@ executors:
       - image: cimg/postgres:15.3
         environment:
           POSTGRES_USER: postgres
-          POSTGRES_DB: postgres
+          POSTGRES_DB: code_review_test
           POSTGRES_PASSWORD: postgres
     working_directory: ~/project
 
@@ -47,6 +47,12 @@ jobs:
           name: Wait for DB to be ready
           command: |
             dockerize -wait tcp://localhost:5432 -timeout 60s
+
+      - run:
+          name: Check Postgres Connection
+          command: |
+            pg_isready -h localhost -p 5432 -U postgres
+            psql -h localhost -U postgres -d my_app_test -c '\l'
 
       - run:
           name: Create and Migrate Database

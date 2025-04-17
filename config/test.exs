@@ -8,11 +8,12 @@ config :code_reviewer, CodeReviewerWeb.Endpoint,
   server: false
 
 config :code_reviewer, CodeReviewer.Repo,
-  database: "postgres",
+  database: "code_review_test",
   username: "postgres",
   password: "postgres",
+  hostname: "localhost",
   show_sensitive_data_on_connection_error: true,
-  pool_size: 10
+  pool: Ecto.Adapters.SQL.Sandbox
 
 config :code_reviewer, ecto_repos: [CodeReviewer.Repo]
 
