@@ -65,10 +65,15 @@ jobs:
           command: mix test
 
       - run:
-          name: Trigger deployment
+          name: Trigger deployment (only on main)
           command: |
-            curl -X POST "$CALLBACK_URL" \
-              -H "Content-Type: application/json"
+            if [ "$CIRCLE_BRANCH" = "main" ]; then
+              echo "On main branch — triggering deployment..."
+              curl -X POST "$CALLBACK_URL" \
+                -H "Content-Type: application/json"
+            else
+              echo "Not on main branch — skipping deployment trigger."
+            fi
 
 workflows:
   test:
