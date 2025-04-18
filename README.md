@@ -32,7 +32,7 @@
 ## Usage
 1. GitHub project/s utilizing the AI review feature will need to be updated to use the webhook, event should be on PR not pushes
 	1. Currently application is only tracking the opening, reopening & marking
-	2. Endpoint is `<API_URL>/api/webhook
+	2. Endpoint is `<API_URL>/api/webhook`
 2. A request should be sent to `<API_URL>/api/credentials` with a JSON object containing the required credentials
 	1. `github_api_token`: String
 	2. `ai_api_token`: String
