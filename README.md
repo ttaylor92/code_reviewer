@@ -3,6 +3,9 @@
 [![CircleCI](https://dl.circleci.com/status-badge/img/gh/ttaylor92/code_reviewer/tree/master.svg?style=svg&circle-token=CCIPRJ_EW8pczxe9JWQVnikpLwyWC_7024332fff056faf3e1dfc74dcef39a85189fe3b)](https://dl.circleci.com/status-badge/redirect/gh/ttaylor92/code_reviewer/tree/master)
 [![codecov](https://codecov.io/gh/ttaylor92/code_reviewer/graph/badge.svg?token=PTLD0JOI75)](https://codecov.io/gh/ttaylor92/code_reviewer)
 
+### Please Note
+Due to the constraints and issues that would arrise from running the functionality through CI actions, I opted for a more comprehensive approach. Time constraints however, limited options for a more scalable approach. Some principles, single responsibility was broken. Additionally i was able to test and confirm annotations working but not test comparisons/recommendations from the AI.
+
 ## Application Architecture (completely free of cost)
 1. Deployed to render for 24/7 uptime or a long running instance
 2. GitHub Rest API's for annotations and webhooks for events
