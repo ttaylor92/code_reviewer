@@ -1,6 +1,5 @@
 defmodule CodeReviewerWeb.WebhookController do
   use CodeReviewerWeb, :controller
-  alias CodeReviewer.GithubActions
 
   @valid_actions [
     "assigned",
@@ -67,7 +66,7 @@ defmodule CodeReviewerWeb.WebhookController do
 
   defp handle_pull_request(conn, params, action) when action in @valid_actions do
     # Process the pull request with our GithubActions module
-    GithubActions.process_pull_request(params)
+    CodeReviewer.GitHubActions.process_pull_request(params)
 
     # Respond to keep connections clear
     conn

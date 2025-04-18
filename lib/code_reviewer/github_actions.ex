@@ -1,4 +1,8 @@
-defmodule CodeReviewer.GithubActions do
+defmodule CodeReviewer.GitHubActions do
+  @moduledoc """
+  Module for interacting with GitHub API.
+  """
+
   alias CodeReviewer.AIClient
   use Tesla, only: [:get, :post]
 
@@ -6,17 +10,22 @@ defmodule CodeReviewer.GithubActions do
   plug Tesla.Middleware.JSON
 
   defp get_client(username) do
-    with {:ok, %{github_api_token: github_api_token}} <-
-           CodeReviewer.SchemasPg.CredentialManagment.find() do
-      Tesla.client([
-        {Tesla.Middleware.Headers,
-         [
-           {"Authorization", "Bearer #{github_api_token || System.get_env("GITHUB_TOKEN")}"},
-           {"X-GitHub-Api-Version", "2022-11-28"},
-           {"Accept", "application/vnd.github.v3.diff"},
-           {"User-Agent", username}
-         ]}
-      ])
+    case client() do
+      __MODULE__ ->
+        with {:ok, %{github_api_token: github_api_token}} <-
+               credential_managment().find() do
+          Tesla.client([
+            {Tesla.Middleware.Headers,
+             [
+               {"Authorization", "Bearer #{github_api_token || System.get_env("GITHUB_TOKEN")}"},
+               {"X-GitHub-Api-Version", "2022-11-28"},
+               {"Accept", "application/vnd.github.v3.diff"},
+               {"User-Agent", username}
+             ]}
+          ])
+        end
+      mock_client ->
+        mock_client
     end
   end
 
@@ -27,7 +36,7 @@ defmodule CodeReviewer.GithubActions do
     owner = payload["sender"]["login"]
     sha = payload["pull_request"]["head"]["sha"]
 
-    with {:ok, diff} <- get_diff(repo, pr_number, owner),
+    with {:ok, diff} <- get_diff(owner, repo, pr_number),
          {:ok, rules} <- get_custom_rules(),
          {:ok, analysis} <- AIClient.analyze_code(diff, rules) do
       # Create annotations
@@ -35,13 +44,18 @@ defmodule CodeReviewer.GithubActions do
     end
   end
 
-  defp get_diff(repo, pr_number, owner) do
-    with {:ok, %{status: 200, body: body}} <-
-           get(get_client(owner), "/repos/#{owner}/#{repo}/pulls/#{pr_number}") do
-      # Format the diff for the AI
-      parsed_body = CodeReviewer.DiffParser.parse(body)
-
-      {:ok, %{body: body, parsed_body: parsed_body}}
+  def get_diff(owner, repo, pr_number) do
+    case client() do
+      __MODULE__ ->
+        with {:ok, client} <- get_client(owner),
+             {:ok, %{status: 200, body: body}} <-
+               get(client, "/repos/#{owner}/#{repo}/pulls/#{pr_number}") do
+          # Format the diff for the AI
+          parsed_body = CodeReviewer.DiffParser.parse(body)
+          {:ok, %{body: body, parsed_body: parsed_body}}
+        end
+      mock_client ->
+        mock_client.get_diff(owner, repo, pr_number)
     end
   end
 
@@ -65,7 +79,7 @@ defmodule CodeReviewer.GithubActions do
   defp create_annotations(repo, pr_number, analysis, owner, sha, parsed_body) do
     IO.puts("Processing Annotations")
     with {:ok, %{github_api_token: github_api_token}} <-
-           CodeReviewer.SchemasPg.CredentialManagment.find() do
+           credential_managment().find() do
       # Parse the AI's analysis to extract violations
       violations = parse_analysis(analysis)
 
@@ -74,15 +88,12 @@ defmodule CodeReviewer.GithubActions do
           {Tesla.Middleware.Headers,
            [
              {"Authorization", "Bearer #{github_api_token || System.get_env("GITHUB_TOKEN")}"},
-             #  {"X-GitHub-Api-Version", "2022-11-28"},
              {"Accept", "application/vnd.github-commitcomment.raw+json"},
              {"User-Agent", owner}
            ]}
         ])
 
       for v <- violations do
-        # Create a check run
-
         with {:ok, %{status: 201}} <-
                post(client, "repos/#{owner}/#{repo}/pulls/#{pr_number}/comments", %{
                  body: v.message,
@@ -92,7 +103,6 @@ defmodule CodeReviewer.GithubActions do
                  line: v.start_line + 1,
                  side: "RIGHT",
                  start_side: "RIGHT"
-                 #  subject_type: "file",
                }) do
           IO.puts("Annotation has been added")
           :ok
@@ -209,5 +219,25 @@ defmodule CodeReviewer.GithubActions do
       #{changes}
       """
     end)
+  end
+
+  def get_pull_request(owner, repo, pr_number) do
+    client().get_pull_request(owner, repo, pr_number)
+  end
+
+  def post_comment(owner, repo, pr_number, comment) do
+    client().post_comment(owner, repo, pr_number, comment)
+  end
+
+  def update_pr_status(owner, repo, pr_number, status, description) do
+    client().update_pr_status(owner, repo, pr_number, status, description)
+  end
+
+  defp client do
+    Application.get_env(:code_reviewer, :github_client, __MODULE__)
+  end
+
+  defp credential_managment do
+    Application.get_env(:code_reviewer, :credential_managment, CodeReviewer.SchemasPg.CredentialManagment)
   end
 end
