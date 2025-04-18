@@ -1,4 +1,8 @@
 defmodule CodeReviewer.SchemasPg.CredentialManagment do
+  @moduledoc """
+  Module for managing credentials.
+  """
+
   alias CodeReviewer.SchemasPg.CredentialManagment.Credential
 
   def create(attr) do

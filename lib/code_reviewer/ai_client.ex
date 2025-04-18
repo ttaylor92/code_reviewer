@@ -1,10 +1,26 @@
 defmodule CodeReviewer.AIClient do
+  @moduledoc """
+  Client for interacting with the AI API.
+  """
+
   use Tesla
 
   plug Tesla.Middleware.BaseUrl, "https://api.aimlapi.com/v1"
   plug Tesla.Middleware.JSON
 
   def analyze_code(code, rules) do
+    client().analyze_code(code, rules)
+  end
+
+  def generate_tests(code, context) do
+    client().generate_tests(code, context)
+  end
+
+  defp client do
+    Application.get_env(:code_reviewer, :ai_client, __MODULE__)
+  end
+
+  def analyze_code_impl(code, rules) do
     system_prompt = """
     You are an expert code reviewer. Analyze the following code against these rules and identify any violations.
     For each violation, provide:
@@ -23,7 +39,7 @@ defmodule CodeReviewer.AIClient do
     """
 
     with {:ok, %{ai_api_token: ai_api_token}} <-
-           CodeReviewer.SchemasPg.CredentialManagment.find() do
+           credential_managment().find() do
       client =
         Tesla.client([
           {Tesla.Middleware.Headers,
@@ -48,7 +64,7 @@ defmodule CodeReviewer.AIClient do
     end
   end
 
-  def generate_tests(code, context) do
+  def generate_tests_impl(code, context) do
     system_prompt = """
     You are an expert test writer for Elixir and Phoenix LiveView applications.
     Generate comprehensive test cases for the provided code.
@@ -88,5 +104,9 @@ defmodule CodeReviewer.AIClient do
         {:ok, content}
       end
     end
+  end
+
+  defp credential_managment do
+    Application.get_env(:code_reviewer, :credential_managment, CodeReviewer.SchemasPg.CredentialManagment)
   end
 end

@@ -62,7 +62,8 @@ defmodule CodeReviewer.MixProject do
       {:postgrex, ">= 0.0.0"},
       {:ecto_shorts, "~> 2.4.0"},
       {:excoveralls, "~> 0.18.5", only: :test, runtime: false},
-      {:credo, "~> 1.6", only: [:dev, :test], runtime: false}
+      {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
+      {:mox, "~> 1.0", only: :test}
     ]
   end
 
@@ -81,7 +82,8 @@ defmodule CodeReviewer.MixProject do
         "tailwind code_reviewer --minify",
         "esbuild code_reviewer --minify",
         "phx.digest"
-      ]
+      ],
+      test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"]
     ]
   end
 end
