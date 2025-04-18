@@ -8,15 +8,14 @@
 import Config
 
 config :code_reviewer, CodeReviewer.Repo,
-  database: "postgres",
-  username: "postgres.qwtfvjncduvqfxbjtvyu",
-  password: "&gx&1hQ6xJsP^^8t9WZ^",
-  hostname: "aws-0-us-east-1.pooler.supabase.com",
+  database: System.get_env("DB_NAME"),
+  username: System.get_env("DB_USERNAME"),
+  password: System.get_env("DB_PASSWORD"),
+  hostname: System.get_env("DB_HOSTNAME"),
   port: 6543,
   show_sensitive_data_on_connection_error: true,
   pool_size: 10,
   pool_mode: :transaction
-  # ssl: true
 
 config :code_reviewer, ecto_repos: [CodeReviewer.Repo]
 

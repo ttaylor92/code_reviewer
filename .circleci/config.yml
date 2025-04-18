@@ -64,6 +64,12 @@ jobs:
           name: Run Tests
           command: mix test
 
+      - run:
+          name: Trigger deployment
+          command: |
+            curl -X POST "$CALLBACK_URL" \
+              -H "Content-Type: application/json"
+
 workflows:
   test:
     jobs:
